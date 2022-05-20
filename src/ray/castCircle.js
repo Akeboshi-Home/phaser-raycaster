@@ -29,16 +29,16 @@ export function castCircle(options = {}) {
     };
 
     //if no objects to cast ray were passed, use raycasters mapped objects
-    if(!options.objects) {
-        if(this._raycaster)
+    if (!options.objects) {
+        if (this._raycaster)
             options.objects = this._raycaster.mappedObjects;
         else
             return intersections;
     }
 
     //if bounding box is defined add bounding box points to 
-    if(this._raycaster && this._raycaster.boundingBox) {
-        for(let point of this._raycaster.boundingBox.points) {
+    if (this._raycaster && this._raycaster.boundingBox) {
+        for (let point of this._raycaster.boundingBox.points) {
             rayTargets.push({
                 point: point,
                 angle: Phaser.Math.Angle.Between(this.origin.x, this.origin.y, point.x, point.y)
@@ -46,16 +46,16 @@ export function castCircle(options = {}) {
         }
     }
 
-    for(let i=0, iLength = options.objects.length; i < iLength; i++) {
+    for (let i = 0, iLength = options.objects.length; i < iLength; i++) {
         let object = options.objects[i];
         //if bound in range
-        if(!this.boundsInRange(object))
+        if (!this.boundsInRange(object))
             continue;
-        
+
         testedObjects.push(object);
 
         let map, boundingBox;
-        if(object.type === 'body' || object.type === 'composite')
+        if (object.type === 'body' || object.type === 'composite')
             map = object.raycasterMap;
         else
             map = object.data.get('raycasterMap');
@@ -68,7 +68,7 @@ export function castCircle(options = {}) {
 
         maps.push(map);
         //get points and angles
-        for(let point of map.getPoints(this)) {
+        for (let point of map.getPoints(this)) {
             rayTargets.push({
                 point: point,
                 angle: Phaser.Math.Angle.Between(this.origin.x, this.origin.y, point.x, point.y)
@@ -76,25 +76,25 @@ export function castCircle(options = {}) {
         }
 
         //get objects intersections
-        for(let j = i+1, jLength = options.objects.length; j < jLength; j++){
+        for (let j = i + 1, jLength = options.objects.length; j < jLength; j++) {
             let objectB = options.objects[j];
             let mapB;
-            if(objectB.type === 'body' || objectB.type === 'composite')
+            if (objectB.type === 'body' || objectB.type === 'composite')
                 mapB = objectB.raycasterMap;
             else {
                 mapB = objectB.data.get('raycasterMap');
             }
             //check if bounding boxes overlap
-            if(!Phaser.Geom.Intersects.RectangleToRectangle(map.getBoundingBox(), mapB.getBoundingBox()))
+            if (!Phaser.Geom.Intersects.RectangleToRectangle(map.getBoundingBox(), mapB.getBoundingBox()))
                 continue;
-            
+
             //find objects intersections
-            for(let segmentA of map.getSegments(this)) {
-                for(let segmentB of mapB.getSegments(this)) {
+            for (let segmentA of map.getSegments(this)) {
+                for (let segmentB of mapB.getSegments(this)) {
                     let intersection = [];
-                    if(!Phaser.Geom.Intersects.LineToLine(segmentA, segmentB, intersection))
+                    if (!Phaser.Geom.Intersects.LineToLine(segmentA, segmentB, intersection))
                         continue;
-                    
+
                     rayTargets.push({
                         point: new Phaser.Geom.Point(intersection.x, intersection.y),
                         angle: Phaser.Math.Angle.Between(this.origin.x, this.origin.y, intersection.x, intersection.y)
@@ -105,10 +105,10 @@ export function castCircle(options = {}) {
     }
 
     //sort target points by angle
-    rayTargets.sort(function(a, b){
+    rayTargets.sort(function (a, b) {
         //if rays towards points have the same angles promote closer one
-        if(a.angle == b.angle) {
-            if(Phaser.Math.Distance.Between(this.origin.x, this.origin.y, a.point.x, a.point.y) > Phaser.Math.Distance.Between(this.origin.x, this.origin.y, b.point.x, b.point.y))
+        if (a.angle == b.angle) {
+            if (Phaser.Math.Distance.Between(this.origin.x, this.origin.y, a.point.x, a.point.y) > Phaser.Math.Distance.Between(this.origin.x, this.origin.y, b.point.x, b.point.y))
                 return 1;
             else
                 return -1;
@@ -122,9 +122,9 @@ export function castCircle(options = {}) {
     };
 
     //cast rays
-    for(let target of rayTargets){
+    for (let target of rayTargets) {
         //if current target is the same as previous one skip loop
-        if(target.angle === previousTarget.angle) {
+        if (target.angle === previousTarget.angle) {
             continue;
         }
 
@@ -137,25 +137,25 @@ export function castCircle(options = {}) {
             internal: true
         });
 
-        if(intersection){
+        if (intersection) {
             //if intersection hits target point cast two additional rays
             let castSides = false;
-            if(this.round) {
+            if (this.round) {
                 let roundedTarget = new Phaser.Geom.Point(Math.round(target.point.x), Math.round(target.point.y));
                 castSides = Phaser.Geom.Point.Equals(roundedTarget, intersection)
             }
             else {
                 castSides = Phaser.Geom.Point.Equals(target.point, intersection);
             }
-            
-            if(castSides) {
+
+            if (castSides) {
                 this.setAngle(target.angle - 0.0001);
                 let intersectionA = this.cast({
                     objects: testedObjects,
                     internal: true
                 });
 
-                if(intersectionA) {
+                if (intersectionA) {
                     intersections.push(intersectionA);
                 }
 
@@ -167,7 +167,7 @@ export function castCircle(options = {}) {
                     internal: true
                 });
 
-                if(intersectionB) {
+                if (intersectionB) {
                     intersections.push(intersectionB);
                 }
 
@@ -181,7 +181,7 @@ export function castCircle(options = {}) {
     this.setAngle(originalAngle);
     this.intersections = intersections;
 
-    if(this.autoSlice)
+    if (this.autoSlice)
         this.slicedIntersections = this.slice();
 
     this._stats.time = performance.now() - startTime;
